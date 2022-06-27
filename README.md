@@ -79,13 +79,13 @@ import com.wavesplatform.transactions.common.ChainId;
 1. Генерируем случайный seed;
 2. Создаем приватный ключ из seed для пользователя alice;
 3. Создаем публичный ключ из приватного ключа;
-4. Формируем адрес кошелька из публичного ключа в сети STAGENET.
+4. Формируем адрес кошелька из публичного ключа в сети TESTNET.
 
 ```Java
 String seed = Crypto.getRandomSeedPhrase();
 PrivateKey alice = PrivateKey.fromSeed(seed);
 PublicKey publicKey = PublicKey.from(alice);
-Address address = Address.from(ChainId.STAGENET, alice.publicKey());
+Address address = Address.from(ChainId.TESTNET, alice.publicKey());
 ```
 ### Работа с транзакциями ###
 **Список транзакций**<br>
@@ -135,6 +135,7 @@ Node node = new Node(Profile.TESTNET);
 Подробнее про [транзакцию выпуска](https://docs.waves.tech/ru/blockchain/transaction-type/issue-transaction).
 
 Создадим ассет с наименованием AssetName в количестве 1000 штук и двумя знаками после запятой.<br>
+Укажем описание ассета "description", укажем отсутствие скрипта и перевыпускаемости.<br>
 Далее подпишем транзакцию приватным ключем пользователя [alice](#работа-с-аккаунтом).
 
 ```Java
@@ -145,12 +146,14 @@ import com.wavesplatform.wavesj.info.IssueTransactionInfo;
 
 // Реализация через Builder
 IssueTransaction tx = IssueTransaction.builder("AssetName", 1000, 2)
-.description("description").script(null).isReiussable(false)
-.getSignedWith(alice);
+        .description("description")
+        .script(null)
+        .isReiussable(false)
+        .getSignedWith(alice);
 
 // Реализация через Constructor
 IssueTransaction tx = new IssueTransaction(alice.publicKey(),"AssetName","description",1000,2,false,null)
-.addProof(alice); 
+        .addProof(alice); 
 
 // Отправка транзакции на ноду и вывод на экране информации о ней
 node.waitForTransaction(node.broadcast(tx).id());
@@ -214,9 +217,9 @@ ReissueTransaction tx = ReissueTransaction.builder(Amount.of(1000, assetId)).get
 
 
 // Реализация через constructor
-IssueTransaction itx = new IssueTransaction(alice.publicKey(),"Asset","",1000,2,true,Base64String.empty())
+IssueTransaction issueTx = new IssueTransaction(alice.publicKey(),"Asset","",1000,2,true,Base64String.empty())
         .addProof(alice);
-AssetId assetId = node.waitForTransaction(node.broadcast(itx).id(), IssueTransactionInfo.class).itx().assetId();
+AssetId assetId = node.waitForTransaction(node.broadcast(issueTx).id(), IssueTransactionInfo.class).issueTx().assetId();
 ReissueTransaction tx = new ReissueTransaction(alice.publicKey(),Amount.of(1000, assetId),true)
         .addProof(alice);
 
@@ -312,7 +315,8 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 
 Трансформируем написанный скрипт в кодировку base64.<br>
 Запустим транзакцию создания [тестового токена](#issue-transaction).<br>
-Установим скрипт в кодировке base64 на токен.
+Установим скрипт в кодировке base64 на токен с помощью транзакции установки скритпа.
+
 
 ```Java
 // Необходимые импортирования
@@ -381,6 +385,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 ```Java
 // Необходимые импортирования
 import com.wavesplatform.transactions.UpdateAssetInfoTransaction;
+import com.wavesplatform.wavesj.info.UpdateAssetInfoTransactionInfo;
 import com.wavesplatform.wavesj.info.IssueTransactionInfo;
 import com.wavesplatform.transactions.IssueTransaction;
 import com.wavesplatform.transactions.common.AssetId;
@@ -405,6 +410,7 @@ UpdateAssetInfoTransaction tx = new UpdateAssetInfoTransaction(alice.publicKey()
 
 // Отправляем транзакцию на ноду и выводим информацию о ней
 node.waitForTransaction(node.broadcast(tx).id());
+UpdateAssetInfoTransactionInfo txInfo = node.getTransactionInfo(tx.id(), UpdateAssetInfoTransactionInfo.class);
 System.out.println("type:" + txInfo.tx().type());
 System.out.println("id:" + txInfo.tx().id());
 System.out.println("fee:" + txInfo.tx().fee().value());
@@ -439,7 +445,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 Транзакция перевода выполняет перевод указанного количества [токена](https://docs.waves.tech/ru/blockchain/token/) на другой аккаунт.<br>
 Подробнее о [транзакции перевода](https://docs.waves.tech/ru/blockchain/transaction-type/transfer-transaction).
 
-Задаем [адрес получателя](#работа-с-аккаунтом) (переменная bob) и ключевые данные транзакции (ID ассета, сумма).<br>
+Задаем [адрес получателя](#работа-с-аккаунтом) bob и данные транзакции (ID ассета, сумма).<br>
 Транзакция подписывается приватным ключём пользователя alice.
 
 ```Java
@@ -449,10 +455,10 @@ import com.wavesplatform.transactions.TransferTransaction;
 import com.wavesplatform.transactions.common.Amount;
 
 // Реализация через builder
-TransferTransaction tx = TransferTransaction.builder(bob.address(), Amount.of(1000)).getSignedWith(alice);
+TransferTransaction tx = TransferTransaction.builder(bob.address(), Amount.of(1000, new AssetId("sdaseqe12312312"))).getSignedWith(alice);
 
 // Реализация через сonstructor
-TransferTransaction tx = new TransferTransaction(alice.publicKey(), bob.address(),Amount.of(1000),null).addProof(alice);
+TransferTransaction tx = new TransferTransaction(alice.publicKey(), bob.address(),Amount.of(1000, new AssetId("sdaseqe12312312")),null).addProof(alice);
 
 // Отправляем транзакцию на ноду и выводим информацию о ней 
 node.waitForTransaction(node.broadcast(tx).id());
@@ -487,7 +493,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 <br>
 
 <!-- Set script transaction =  Транзакция установки скрипта -->
-#### `Set script transaction` ####
+#### `Set script transaction` ####          
 Транзакция установки скрипта прикрепляет [dApp-скрипт](https://docs.waves.tech/ru/ride/script/script-types/dapp-script) или [скрипт аккаунта](https://docs.waves.tech/ru/ride/script/script-types/account-script) к аккаунту отправителя.<br>
 Подробнее о [транзакции установки скрипта](https://docs.waves.tech/ru/blockchain/transaction-type/set-script-transaction).
 
@@ -539,23 +545,181 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 Подробнее о [транзакции вызова скрипта](https://docs.waves.tech/ru/blockchain/transaction-type/invoke-script-transaction).<br>
 Подробнее о [dApp и о вызове скрипта](https://docs.waves.tech/ru/building-apps/smart-contracts/what-is-a-dapp).
 
+Создадим ассет()
+Создадим функцию func call(bv: ByteVector, b: Boolean, int: Int, str: String, list: List[Int]).<br>
+Трансформируем написанный скрипт в кодировку base64.<br>
+Устанавливаем данный скрипт на аккаунт bob.
+Создаем и публикуем транзакцию Invoke script от имени alice.
 
 ```Java
 // Необходимые импортирования
+import java.util.ArrayList;
+import com.wavesplatform.transactions.invocation.*;
+import com.wavesplatform.transactions.common.Amount;
+import com.wavesplatform.transactions.InvokeScriptTransaction;
+import com.wavesplatform.transactions.SetScriptTransaction;
+import com.wavesplatform.transactions.IssueTransaction;
+import com.wavesplatform.transactions.common.AssetId;
+import com.wavesplatform.transactions.common.Base64String;
+import com.wavesplatform.wavesj.info.InvokeScriptTransactionInfo;
+import com.wavesplatform.wavesj.info.IssueTransactionInfo;
+
 // Реализация через builder
+AssetId assetId = node.waitForTransaction(node.broadcast(
+        IssueTransaction.builder("Asset", 1000, 2).getSignedWith(alice)).id(),
+        IssueTransactionInfo.class).tx().assetId();
+
+Base64String script = node.compileScript(
+        "{-# STDLIB_VERSION 5 #-}\n" +
+        "{-# CONTENT_TYPE DAPP #-}\n" +
+        "{-# SCRIPT_TYPE ACCOUNT #-}\n" +
+        "@Callable(inv)\n" +
+        "func call(bv: ByteVector, b: Boolean, int: Int, str: String, list: List[Int]) = {\n" +
+        "  let asset = Issue(\"Asset\", \"\", 1, 0, true)\n" +
+        "  let assetId = asset.calculateAssetId()\n" +
+        "  let lease = Lease(inv.caller, 7)\n" +
+        "  let leaseId = lease.calculateLeaseId()\n" +
+        "  [\n" +
+        "    BinaryEntry(\"bin\", assetId),\n" +
+        "    BooleanEntry(\"bool\", true),\n" +
+        "    IntegerEntry(\"int\", 100500),\n" +
+        "    StringEntry(\"assetId\", assetId.toBase58String()),\n" +
+        "    StringEntry(\"leaseId\", leaseId.toBase58String()),\n" +
+        "    StringEntry(\"del\", \"\"),\n" +
+        "    DeleteEntry(\"del\"),\n" +
+        "    asset,\n" +
+        "    SponsorFee(assetId, 1),\n" +
+        "    Reissue(assetId, 4, false),\n" +
+        "    Burn(assetId, 3),\n" +
+        "    ScriptTransfer(inv.caller, 2, assetId),\n" +
+        "    lease,\n" +
+        "    LeaseCancel(lease.calculateLeaseId())\n" +
+        "  ]\n" +
+        "}").script();
+
+node.waitForTransaction(node.broadcast(SetScriptTransaction.builder(script).getSignedWith(bob)).id());
+
+InvokeScriptTransaction tx = InvokeScriptTransaction
+        .builder(bob.address(), Function.as("call",BinaryArg.as(alice.address().bytes()),BooleanArg.as(true),
+                IntegerArg.as(100500),StringArg.as(alice.address().toString()),ListArg.as(IntegerArg.as(100500))))
+        .payments(Amount.of(1, assetId),Amount.of(2, assetId),Amount.of(3, assetId),Amount.of(4, assetId),
+                Amount.of(5, assetId),Amount.of(6, assetId),Amount.of(7, assetId),
+                Amount.of(8, assetId),Amount.of(9, assetId),Amount.of(10, assetId))
+        .extraFee(1_00000000).getSignedWith(alice);
+
+
 // Реализация через сonstructor
+IssueTransaction tx = new IssueTransaction(alice.publicKey(),"Asset","",1000,2,true,Base64String.empty())
+        .addProof(alice);
+AssetId assetId = node.waitForTransaction(node.broadcast(tx).id(), IssueTransactionInfo.class).tx().assetId();
+
+Base64String script = node.compileScript(
+        "{-# STDLIB_VERSION 5 #-}\n" +
+        "{-# CONTENT_TYPE DAPP #-}\n" +
+        "{-# SCRIPT_TYPE ACCOUNT #-}\n" +
+        "@Callable(inv)\n" +
+        "func call(bv: ByteVector, b: Boolean, int: Int, str: String, list: List[Int]) = {\n" +
+        "  let asset = Issue(\"Asset\", \"\", 1, 0, true)\n" +
+        "  let assetId = asset.calculateAssetId()\n" +
+        "  let lease = Lease(inv.caller, 7)\n" +
+        "  let leaseId = lease.calculateLeaseId()\n" +
+        "  [\n" +
+        "    BinaryEntry(\"bin\", assetId),\n" +
+        "    BooleanEntry(\"bool\", true),\n" +
+        "    IntegerEntry(\"int\", 100500),\n" +
+        "    StringEntry(\"assetId\", assetId.toBase58String()),\n" +
+        "    StringEntry(\"leaseId\", leaseId.toBase58String()),\n" +
+        "    StringEntry(\"del\", \"\"),\n" +
+        "    DeleteEntry(\"del\"),\n" +
+        "    asset,\n" +
+        "    SponsorFee(assetId, 1),\n" +
+        "    Reissue(assetId, 4, false),\n" +
+        "    Burn(assetId, 3),\n" +
+        "    ScriptTransfer(inv.caller, 2, assetId),\n" +
+        "    lease,\n" +
+        "    LeaseCancel(lease.calculateLeaseId())\n" +
+        "  ]\n" +
+        "}").script();
+
+node.waitForTransaction(node.broadcast(new SetScriptTransaction(bob.publicKey(), script).addProof(bob)).id());
+
+ArrayList<Amount> payments = new ArrayList<>();
+payments.add(Amount.of(1, assetId));
+payments.add(Amount.of(2, assetId));
+payments.add(Amount.of(3, assetId));
+payments.add(Amount.of(4, assetId));
+payments.add(Amount.of(5, assetId));
+payments.add(Amount.of(6, assetId));
+payments.add(Amount.of(7, assetId));
+payments.add(Amount.of(8, assetId));
+payments.add(Amount.of(9, assetId));
+payments.add(Amount.of(10, assetId));
+
+InvokeScriptTransaction tx = new InvokeScriptTransaction(
+        alice.publicKey(),
+        bob.address(),
+        Function.as("call",BinaryArg.as(alice.address().bytes()),BooleanArg.as(true),IntegerArg.as(100500),
+                StringArg.as(alice.address().toString()), ListArg.as(IntegerArg.as(100500))),payments).addProof(alice);
+
+// Отправляем транзакцию на ноду и выводим информацию о ней 
+node.waitForTransaction(node.broadcast(tx).id());
+
+InvokeScriptTransactionInfo txInfo = node.getTransactionInfo(
+        new Id("68qf34fyrKSRWP95kaLnS1kysLJKXuM14E1qtr3WAky7"),
+        InvokeScriptTransactionInfo.class);
+
+System.out.println("type:" + txInfo.tx().type());
+System.out.println("id:" + txInfo.tx().id());
+System.out.println("fee:" + txInfo.tx().fee().value());
+System.out.println("feeAssetId:" + txInfo.tx().fee().assetId().encoded());
+System.out.println("timestamp:" + txInfo.tx().timestamp());
+System.out.println("version:" + txInfo.tx().version());
+System.out.println("chainId:" + txInfo.tx().chainId());
+System.out.println("sender:" + txInfo.tx().sender().address().encoded());
+System.out.println("senderPublicKey:" + txInfo.tx().sender().encoded());
+System.out.println("proofs:" + txInfo.tx().proofs());
+System.out.println("dApp:" + txInfo.tx().dApp().toString());
+System.out.println("payment:" + txInfo.tx().payments());
+System.out.println("call function:" + txInfo.tx().function().name());
+System.out.println("call args:" + txInfo.tx().function().args());
+System.out.println("height:" + txInfo.height());
+System.out.println("applicationStatus:" + txInfo.applicationStatus());
+System.out.println("state changes:" + txInfo.stateChanges().toString());
 ```
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-|  <span style="color:red">(required)</span> | |  |
+| call.function <span style="color:red">(required)</span> | Имя вызываемой функции. До 255 байт (1 символ может занимать до 4 байт). | foo |
+| call.args.type | Тип аргумента:<br>- binary<br>- boolean<br>- integer<br>- string<br>- list (доступно после активации фичи № 15). | list |
+| call.args.value | Значение аргумента.<br>Бинарное значение должно быть в кодировке base64. | [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/invoke-script-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=%22value%22%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22type%22%3A%20%22string%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22value%22%3A%20%22theta%22%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22type%22%3A%20%22string%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22value%22%3A%20%22iota%22%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22type%22%3A%20%22string%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22value%22%3A%20%22kappa%22%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%5D)|
+| dApp | Адрес dApp в кодировке base58 или [псевдоним](https://docs.waves.tech/ru/blockchain/account/alias) адреса c префиксом alias:<байт_сети>:,<br>например alias:T:merry (см. [Байт сети](https://docs.waves.tech/ru/blockchain/blockchain-network/#%D0%B1%D0%B0%D0%B9%D1%82-%D1%81%D0%B5%D1%82%D0%B8)).| 3N28o4ZDhPK77QFFKoKBnN3uNeoaNSNXzXm |
+| payment.amount | Количество токена в платеже, в [атомарных единицах](https://docs.waves.tech/ru/blockchain/token/#%D0%B0%D1%82%D0%BE%D0%BC%D0%B0%D1%80%D0%BD%D0%B0%D1%8F-%D0%B5%D0%B4%D0%B8%D0%BD%D0%B8%D1%86%D0%B0) | 10000 |
+| payment.assetId | ID токена в платеже в кодировке base58. null означает, что платеж в WAVES | GSFk5Ziwx33g8KuMyh6wYerxJcHXdcGgXFiBYXH58AE6 |
+| spentComplexity | | 57 |
+| stateChanges | Действия скрипта, выполненные вызываемой функцией, и результаты вызовов [dApp из dApp](https://docs.waves.tech/ru/ride/advanced/dapp-to-dapp)| [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/invoke-script-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=%22stateChanges%22%3A,%5D%0A%20%20%7D%0A%7D) |
+
+
+
+
 <!-- Exchange transaction = Транзакция обмена -->
 #### `Exchange transaction` ####
 Транзакция обмена обменивает два различных токена между двумя аккаунтами.<br>
 Подробнее о [транзакции обмена](https://docs.waves.tech/ru/blockchain/transaction-type/exchange-transaction).
 
-Транзакция содержит два встречных ордера: ордер на покупку и ордер на продажу. 
-Блокчейн гарантирует, что условия обмена не хуже, чем указаны в каждом из ордеров.
+
+Создадим тестовый токен.
+СОзда
+Задаем количество ассета (amount), которое мы хотим купить; и цену, за которую хотим купить (price).
+Указываем комиссию матчера.
+Создаем ордер на покупку от имени bob.
+Создаем ордер на продажу от имени alice.
+Проведем транзакцию обмена.
+
+
+
+<!-- Транзакция содержит два встречных ордера: ордер на покупку и ордер на продажу.  -->
+
+
 
 
 ```Java
@@ -578,12 +742,13 @@ AssetId assetId = node.waitForTransaction(node.broadcast(
 
 Amount amount = Amount.of(1);
 Amount price = Amount.of(100, assetId);
-long matcherFee = 300000;
+long buyMatcherFee = 300000;
+long sellMatcherFee = 300000;
 
 Order buy = Order.builder(OrderType.BUY, amount, price, alice.publicKey()).getSignedWith(bob);
 Order sell = Order.builder(OrderType.SELL, amount, price, alice.publicKey()).getSignedWith(alice);
 ExchangeTransaction tx = ExchangeTransaction
-        .builder(buy, sell, amount.value(), price.value(), matcherFee, matcherFee)
+        .builder(buy, sell, amount.value(), price.value(), buyMatcherFee, sellMatcherFee)
         .getSignedWith(alice);
 
 // Реализация через сonstructor
@@ -682,6 +847,10 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 
 <!-- Выполним транзакцию массового перевода на аккаунт bob с аккаунта alice. -->
 
+Создаем транзакцию массового перевода двум адресатам: bob и julia.
+Подписываем транзакцию приватным ключем отправителя alice.
+
+
 ```Java
 // Необходимые импортирования
 import java.util.Collections;
@@ -692,12 +861,16 @@ import com.wavesplatform.wavesj.info.MassTransferTransactionInfo;
 import com.wavesplatform.wavesj.info.TransactionInfo;
 
 // Реализация через builder
-MassTransferTransaction tx = MassTransferTransaction.builder(Transfer.to(bob.address(), 1000)).getSignedWith(alice);
-        node.waitForTransaction(node.broadcast(tx).id());
+MassTransferTransaction tx = MassTransferTransaction.builder(
+        Transfer.to(bob.address(), 1000), Transfer.to(julia.address(), 1000)).getSignedWith(alice);
+node.waitForTransaction(node.broadcast(tx).id());
 
 // Реализация через сonstructor
-MassTransferTransaction tx = new MassTransferTransaction(alice.publicKey(), AssetId.WAVES, Collections
-        .singletonList(Transfer.to(bob.address(), 1000)),null).addProof(alice);
+ArrayList<Transfer> transfers = new ArrayList<>();
+transfers.add(Transfer.to(bob.address(), 1000));
+transfers.add(Transfer.to(julia.address(), 1000));
+
+MassTransferTransaction tx = new MassTransferTransaction(alice.publicKey(), AssetId.WAVES, transfers, null).addProof(alice);
 
 // Отправляем транзакцию на ноду и выводим информацию о ней 
 TransactionInfo commonInfo = node.getTransactionInfo(tx.id());
@@ -742,6 +915,8 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 
 <br>
 
+Создаем транзакцию данных с парой ключа/значения, адресом кошелька.
+
 ```Java
 // Необходимые импортирования
 import com.wavesplatform.transactions.DataTransaction;
@@ -752,11 +927,14 @@ import java.util.Collections;
 
 // Реализация через builder
 DataTransaction tx = DataTransaction.builder(StringEntry.as("str", alice.address().toString())).getSignedWith(alice);
+// DataTransaction tx = DataTransaction.builder(StringEntry.as("key1", "value1"), StringEntry.as("key2", "value2"))
 
 // Реализация через сonstructor
 DataTransaction tx = new DataTransaction(
         alice.publicKey(),Collections.singletonList(StringEntry.as("str", alice.address().encoded())))
         .addProof(alice);
+
+
 
 // Отправляем транзакцию на ноду и выводим информацию о ней 
 node.waitForTransaction(node.broadcast(tx).id());
@@ -797,6 +975,8 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 Подробнее о [транзакции создания псевдонима](https://docs.waves.tech/ru/blockchain/transaction-type/create-alias-transaction).
 
 <br>
+
+Создаем псевдоним и проводим транзакцию прикрепления псевдонима к адресу alice.
 
 
 ```Java
@@ -852,7 +1032,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 Транзакция лизинга передает WAVES в лизинг другому аккаунту.<br>
 Подробнее о [транзакции лизинга](https://docs.waves.tech/ru/blockchain/transaction-type/lease-transaction).
 
-Передаем токен в лизинг [пользователю](#работа-с-аккаунтом) bob с аккаунта отправителя alice в размере 1000.
+Передаем токен Waves в лизинг [пользователю](#работа-с-аккаунтом) адресу bob с адреса отправителя alice в размере 1000.
 
 ```Java
 // Необходимые импортирования
@@ -971,7 +1151,8 @@ System.out.println("lease cancelTransactionId:" + txInfo.leaseInfo().cancelTrans
 Подробнее о [транзакции спонсирования](https://docs.waves.tech/ru/blockchain/transaction-type/sponsor-fee-transaction).
 
 
-
+Создадим тестовый ассет()
+Проведем транзакцию спонсирования с указанием ассета и минимальной комиссии спонсорства.
 
 ```Java
 // Необходимые импортирования
@@ -1024,5 +1205,150 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 | assetId | ID ассета в кодировке base58. | p1vuxnGyfH9VFiuyKmsh25rn6MedjGbQu7d6Zt1sY4U |
 
 <br>
+
+
+
+
+
+
+---
+
+Ethereum transfer transaction
+Credentials charlie = MetamaskHelper.generateCredentials("some mnemonic");
+String charlieAddress = WavesEthConverter.ethToWavesAddress(charlie.getAddress(), ChainId.TESTNET);
+
+TransferTransaction tx = TransferTransaction.builder(new Address(charlieAddress), Amount.of(1_00_000_000)).getSignedWith(alice);
+node.waitForTransaction(node.broadcast(tx).id());
+
+EthereumTransaction transferTx = EthereumTransaction.createAndSign(
+        new EthereumTransaction.Transfer(
+                new Address(alice.address().encoded()),
+                new Amount(1000, AssetId.WAVES)
+        ),
+        DEFAULT_GAS_PRICE,
+        WavesConfig.chainId(),
+        100000L,
+        Instant.now().toEpochMilli(),
+        charlie.getEcKeyPair()
+);
+
+EthRpcResponse rs = node.broadcastEthTransaction(transferTx);
+node.waitForTransaction(transferTx.id());
+EthereumTransactionInfo ethTxInfo = node.getTransactionInfo(transferTx.id(), EthereumTransactionInfo.class);
+
+EthereumTransaction.Transfer payload = (EthereumTransaction.Transfer) ethTxInfo.tx().payload();
+
+System.out.println("isTransfer transaction:" + ethTxInfo.isTransferTransaction());
+System.out.println("type:" + ethTxInfo.tx().type());
+System.out.println("id:" + ethTxInfo.tx().id());
+System.out.println("fee:" + ethTxInfo.tx().fee().value());
+System.out.println("feeAssetId:" + ethTxInfo.tx().fee().assetId().encoded());
+System.out.println("timestamp:" + ethTxInfo.tx().timestamp());
+System.out.println("version:" + ethTxInfo.tx().version());
+System.out.println("chainId:" + ethTxInfo.tx().chainId());
+System.out.println("sender:" + ethTxInfo.tx().sender().address().encoded());
+System.out.println("senderPublicKey:" + ethTxInfo.tx().sender().encoded());
+System.out.println("proofs:" + ethTxInfo.tx().proofs());
+System.out.println("payload recipient:" + payload.recipient().encoded());
+System.out.println("payload asset:" + payload.amount().assetId().encoded());
+System.out.println("payload amount:" + payload.amount().value());
+System.out.println("asset:" + payload.amount().assetId().encoded());
+System.out.println("height:" + ethTxInfo.height());
+System.out.println("applicationStatus:" + ethTxInfo.applicationStatus());
+Ethereum invoke script transaction
+Credentials charlie = MetamaskHelper.generateCredentials("some mnemonic");
+String charlieAddress = WavesEthConverter.ethToWavesAddress(charlie.getAddress(), ChainId.TESTNET);
+        
+Base64String script = node.compileScript(
+        "{-# STDLIB_VERSION 5 #-}\n" +
+        "{-# CONTENT_TYPE DAPP #-}\n" +
+        "{-# SCRIPT_TYPE ACCOUNT #-}\n" +
+        "@Callable(inv)\n" +
+        "func call(bv: ByteVector, b: Boolean, int: Int, str: String, list: List[Int]) = {\n" +
+        "  let asset = Issue(\"Asset\", \"\", 1, 0, true)\n" +
+        "  let assetId = asset.calculateAssetId()\n" +
+        "  let lease = Lease(inv.caller, 7)\n" +
+        "  let leaseId = lease.calculateLeaseId()\n" +
+        "  [\n" +
+        "    BinaryEntry(\"bin\", assetId),\n" +
+        "    BooleanEntry(\"bool\", true),\n" +
+        "    IntegerEntry(\"int\", 100500),\n" +
+        "    StringEntry(\"assetId\", assetId.toBase58String()),\n" +
+        "    StringEntry(\"leaseId\", leaseId.toBase58String()),\n" +
+        "    StringEntry(\"del\", \"\"),\n" +
+        "    DeleteEntry(\"del\"),\n" +
+        "    asset,\n" +
+        "    SponsorFee(assetId, 1),\n" +
+        "    Reissue(assetId, 4, false),\n" +
+        "    Burn(assetId, 3),\n" +
+        "    ScriptTransfer(inv.caller, 2, assetId),\n" +
+        "    lease,\n" +
+        "    LeaseCancel(lease.calculateLeaseId())\n" +
+        "  ]\n" +
+        "}").script();
+
+node.waitForTransaction(node.broadcast(SetScriptTransaction.builder(script).fee(3400000).getSignedWith(alice)).id());
+
+TransferTransaction tx = TransferTransaction.builder(
+        new Address(charlieAddress), Amount.of(1_00_000_000)).getSignedWith(alice);
+node.waitForTransaction(node.broadcast(tx).id());
+
+ArrayList<Amount> payments = new ArrayList<>();
+payments.add(Amount.of(1, AssetId.WAVES));
+payments.add(Amount.of(2, AssetId.WAVES));
+payments.add(Amount.of(3, AssetId.WAVES));
+
+EthereumTransaction ethInvokeTx = EthereumTransaction.createAndSign(
+        new EthereumTransaction.Invocation(
+                alice.address(),
+                Function.as("call",
+                            BinaryArg.as(new Address(charlieAddress).bytes()),
+                            BooleanArg.as(true),
+                            IntegerArg.as(100500),
+                            StringArg.as(alice.address().toString()),
+                            ListArg.as(IntegerArg.as(100500))
+                ),
+                        payments
+                ),
+        DEFAULT_GAS_PRICE,
+        WavesConfig.chainId(),
+        100500000L,
+        Instant.now().toEpochMilli(),
+        charlie.getEcKeyPair()
+);
+
+EthRpcResponse rs = node.broadcastEthTransaction(ethInvokeTx);
+node.waitForTransaction(ethInvokeTx.id());
+
+EthereumTransactionInfo ethInvokeTxInfo = node.getTransactionInfo(ethInvokeTx.id(), EthereumTransactionInfo.class);
+
+System.out.println("isInvocation:" + ethInvokeTxInfo.isInvokeTransaction());
+System.out.println("type:" + ethInvokeTxInfo.tx().type());
+System.out.println("id:" + ethInvokeTxInfo.tx().id());
+System.out.println("fee:" + ethInvokeTxInfo.tx().fee().value());
+System.out.println("feeAssetId:" + ethInvokeTxInfo.tx().fee().assetId().encoded());
+System.out.println("timestamp:" + ethInvokeTxInfo.tx().timestamp());
+System.out.println("version:" + ethInvokeTxInfo.tx().version());
+System.out.println("chainId:" + ethInvokeTxInfo.tx().chainId());
+System.out.println("sender:" + ethInvokeTxInfo.tx().sender().address().encoded());
+System.out.println("senderPublicKey:" + ethInvokeTxInfo.tx().sender().encoded());
+System.out.println("proofs:" + ethInvokeTxInfo.tx().proofs());
+System.out.println("payload dApp:" + invocation.dApp().encoded());
+System.out.println("payload call function:" + invocation.function().name());
+System.out.println("payload call args:" + invocation.function().args());
+System.out.println("payment:" + invocation.payments());
+System.out.println("stateChanges:" + ethInvokeTxInfo.getStateChanges());
+System.out.println("height:" + ethInvokeTxInfo.height());
+System.out.println("applicationStatus:" + ethInvokeTxInfo.applicationStatus());
+
+
+---
+
+
+
+
+
+
+
 
 ### Работа с нодой ###
