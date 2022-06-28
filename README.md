@@ -148,7 +148,7 @@ import com.wavesplatform.wavesj.info.IssueTransactionInfo;
 IssueTransaction tx = IssueTransaction.builder("AssetName", 1000, 2)
         .description("description")
         .script(null)
-        .isReiussable(false)
+        .isReissuable(false)
         .getSignedWith(alice);
 
 // Реализация через Constructor
@@ -182,9 +182,9 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| name <span style="color:red">(required)</span> | Название токена. <br>От 4 до 16 байт (1 символ может занимать до 4 байт).| AssetName |
-| quantity <span style="color:red">(required)</span> | Количество токена.<br>Целое число, выраженное в минимальных неделимых единицах токена.<br> То есть фактическое количество, умноженное на 10decimals.<br>От 1 до 9 223 372 036 854 775 807.1 для NFT.| 1000 |
-| decimals <span style="color:red">(required)</span> | Количество знаков после запятой, от 0 до 8. <br>0 для NFT.| 2 |
+| name | Название токена. <br>От 4 до 16 байт (1 символ может занимать до 4 байт).| AssetName |
+| quantity | Количество токена.<br>Целое число, выраженное в минимальных неделимых единицах токена.<br> То есть фактическое количество, умноженное на 10decimals.<br>От 1 до 9 223 372 036 854 775 807.1 для NFT.| 1000 |
+| decimals | Количество знаков после запятой, от 0 до 8. <br>0 для NFT.| 2 |
 | description | Описание токена. От 0 до 1000 байт.| Description|
 | reissuable | Флаг возможности довыпуска, см.<br>[Транзакция довыпуска](https://docs.waves.tech/ru/blockchain/transaction-type/reissue-transaction). false для NFT | false |
 | script | Для смарт-ассета — скомпилированный скрипт ассета, до 8192 байт, в кодировке base64.<br>При значении null — выпускается токен без скрипта.<br>Если при выпуске к ассету не прикреплен скрипт, в дальнейшем его нельзя сделать смарт-ассетом.| null |
@@ -248,9 +248,9 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| assetId <span style="color:red">(required)</span> | ID токена в кодировке base58.| GSFk5Ziwx33g8KuMyh6wYerxJcHXdcGgXFiBYXH58AE6 |
-| quantity <span style="color:red">(required)</span> | Количество токена к довыпуску.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена.<br>Итоговое количество токена в результате довыпуска не должно превышать<br> 9 223 372 036 854 775 807| 1000|
-| reissuable <span style="color:red">(required)</span> | Флаг возможности довыпуска. | true |
+| assetId | ID токена в кодировке base58.| GSFk5Ziwx33g8KuMyh6wYerxJcHXdcGgXFiBYXH58AE6 |
+| quantity | Количество токена к довыпуску.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена.<br>Итоговое количество токена в результате довыпуска не должно превышать<br> 9 223 372 036 854 775 807| 1000|
+| reissuable | Флаг возможности довыпуска. | true |
 <br>
 
 <!-- Burn transaction = Транзакция сжигания токена -->
@@ -312,8 +312,8 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| amount <span style="color:red">(required)</span> | Количество сжигаемого токена.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена. | 100 |
-| assetId <span style="color:red">(required)</span> | ID сжигаемого токена в кодировке base58 | GSFk5Ziwx33g8KuMyh6wYerxJcHXdcGgXFiBYXH58AE6 
+| amount | Количество сжигаемого токена.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена. | 100 |
+| assetId | ID сжигаемого токена в кодировке base58 | GSFk5Ziwx33g8KuMyh6wYerxJcHXdcGgXFiBYXH58AE6 
 <br>
 
 <!-- Set asset script = Транзакция установки скрипта ассета -->
@@ -383,8 +383,8 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| assetId <span style="color:red">(required)</span> | ID токена в кодировке base58. | 7qJUQFxniMQx45wk12UdZwknEW9cDgvfoHuAvwDNVjYv |
-| script <span style="color:red">(required)</span> | Cкомпилированный скрипт ассета, до 8192 байт, в кодировке base64. | base64:AQa3b8tH |
+| assetId | ID токена в кодировке base58. | 7qJUQFxniMQx45wk12UdZwknEW9cDgvfoHuAvwDNVjYv |
+| script | Cкомпилированный скрипт ассета, до 8192 байт, в кодировке base64. | base64:AQa3b8tH |
 
 <br>
 
@@ -452,9 +452,9 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| name <span style="color:red">(required)</span> | Название токена. От 4 до 16 байт. | New asset name |
-| description <span style="color:red">(required)</span> | Описание токена. От 0 до 1000 байт. | Random phrase |
-| assetId <span style="color:red">(required)</span> | ID токена в кодировке base58. | syXBywr2HVY7wxqkaci1jKY73KMpoLh46cp1peJAZNJ |
+| name | Название токена. От 4 до 16 байт. | New asset name |
+| description | Описание токена. От 0 до 1000 байт. | Random phrase |
+| assetId | ID токена в кодировке base58. | syXBywr2HVY7wxqkaci1jKY73KMpoLh46cp1peJAZNJ |
 
 <br>
 
@@ -511,8 +511,8 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
 | assetId | ID переводимого токена в кодировке base58.<br>null — перевод в WAVES. | 7uncmN7dZfV3fYVvNdYTngrrbamPYMgwpDnYG1bGy6nA |
-| amount <span style="color:red">(required)| Количество токена к переводу.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена.| 1000 |
-| recipient <span style="color:red">(required)| Адрес получателя в кодировке base58 или [псевдоним](https://docs.waves.tech/ru/blockchain/account/alias) адреса c префиксом alias:<байт_сети>:.<br>Например alias:T:merry (см.[Байт сети)](https://docs.waves.tech/ru/blockchain/blockchain-network/#%D0%B1%D0%B0%D0%B9%D1%82-%D1%81%D0%B5%D1%82%D0%B8) | 3PFmoN5YLoPNsL4cmNGkRxbUKrUVntwyAhf |
+| amount | Количество токена к переводу.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена.| 1000 |
+| recipient | Адрес получателя в кодировке base58 или [псевдоним](https://docs.waves.tech/ru/blockchain/account/alias) адреса c префиксом alias:<байт_сети>:.<br>Например alias:T:merry (см.[Байт сети)](https://docs.waves.tech/ru/blockchain/blockchain-network/#%D0%B1%D0%B0%D0%B9%D1%82-%D1%81%D0%B5%D1%82%D0%B8) | 3PFmoN5YLoPNsL4cmNGkRxbUKrUVntwyAhf |
 | attachment | 	Произвольные данные (обычно комментарий к транзакции), до 140 байт, в кодировке base58 | 3vrgtyozxuY88J9RqMBBAci2UzAq9DBMFTpMWLPzMygGeSWnD7k | 
 
 <br>
@@ -564,7 +564,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| script <span style="color:red">(required)</span> | Скомпилированный скрипт в кодировке base64.<br>Размер скрипта аккаунта — до 8192 байт.<br>Размер скрипта dApp — до 32 768 байт (после активации фичи № 17 — до 163 840 байт).<br>null — удалить скрипт| [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/set-script-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=base64,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%3D%3D)|
+| script | Скомпилированный скрипт в кодировке base64.<br>Размер скрипта аккаунта — до 8192 байт.<br>Размер скрипта dApp — до 32 768 байт (после активации фичи № 17 — до 163 840 байт).<br>null — удалить скрипт| [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/set-script-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=base64,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%3D%3D)|
 <!-- | account <span style="color:red">(required)| Адрес получателя в кодировке base58 или [псевдоним](https://docs.waves.tech/ru/blockchain/account/alias) адреса c префиксом alias:<байт_сети>:.<br>Например alias:T:merry (см.[Байт сети)](https://docs.waves.tech/ru/blockchain/blockchain-network/#%D0%B1%D0%B0%D0%B9%D1%82-%D1%81%D0%B5%D1%82%D0%B8) | 3PFmoN5YLoPNsL4cmNGkRxbUKrUVntwyAhf<br>(alice)| -->
 
 <br>
@@ -740,7 +740,7 @@ System.out.println("state changes:" + txInfo.stateChanges().toString());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| call.function <span style="color:red">(required)</span> | Имя вызываемой функции. До 255 байт (1 символ может занимать до 4 байт). | foo |
+| call.function | Имя вызываемой функции. До 255 байт (1 символ может занимать до 4 байт). | foo |
 | call.args.type | Тип аргумента:<br>- binary<br>- boolean<br>- integer<br>- string<br>- list (доступно после активации фичи № 15). | list |
 | call.args.value | Значение аргумента.<br>Бинарное значение должно быть в кодировке base64. | [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/invoke-script-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=%22value%22%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22type%22%3A%20%22string%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22value%22%3A%20%22theta%22%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22type%22%3A%20%22string%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22value%22%3A%20%22iota%22%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%22type%22%3A%20%22string%22%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%22value%22%3A%20%22kappa%22%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%5D)|
 | dApp | Адрес dApp в кодировке base58 или [псевдоним](https://docs.waves.tech/ru/blockchain/account/alias) адреса c префиксом alias:<байт_сети>:,<br>например alias:T:merry (см. [Байт сети](https://docs.waves.tech/ru/blockchain/blockchain-network/#%D0%B1%D0%B0%D0%B9%D1%82-%D1%81%D0%B5%D1%82%D0%B8)).| 3N28o4ZDhPK77QFFKoKBnN3uNeoaNSNXzXm |
@@ -950,7 +950,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| assetId <span style="color:red">(required)</span> | ID переводимого токена в кодировке base58.<br>null — перевод в WAVES. | Fx2rhWK36H1nfXsiD4orNpBm2QG1JrMhx3eUcPVcoZm2 |
+| assetId | ID переводимого токена в кодировке base58.<br>null — перевод в WAVES. | Fx2rhWK36H1nfXsiD4orNpBm2QG1JrMhx3eUcPVcoZm2 |
 | transfers.recipient | Адрес получателя в кодировке base58 или псевдоним адреса c префиксом alias:<байт_сети>:,<br>например alias:T:merry (см. Байт сети). | [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/mass-transfer-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=%22transfers%22%3A,...%0A%20%20%5D%2C)|
 | transfers.amount | Количество токена к переводу.<br>Целое число, выраженное в минимальных неделимых единицах («копейках») токена. | [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/mass-transfer-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=%22transfers%22%3A,%2C%0A%20%20%20%20...%0A%20%20%5D) |
 | transferCount | Количество получателей. | 100 |
@@ -1017,7 +1017,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| data.key <span style="color:red">(required)</span> | Ключ записи. Строка, до 400 байт для версии 2, до 100 символов для версии 1. | bool |
+| data.key | Ключ записи. Строка, до 400 байт для версии 2, до 100 символов для версии 1. | bool |
 | data.type | Тип данных:<br>- binary<br>- boolean<br>- integer<br>- string<br>null — удаление записи | boolean |
 | data.value | Значение записи. До 32 767 байт. Бинарное значение должно быть в кодировке base64.<br>null — удаление записи| 1234567 |
 
@@ -1074,9 +1074,10 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-|  alias <span style="color:red">(required)</span> | Псевдоним. См. [Требования к псевдониму](https://docs.waves.tech/ru/blockchain/account/alias#%D1%82%D1%80%D0%B5%D0%B1%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D0%BA-%D0%BF%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BD%D0%B8%D0%BC%D1%83) | 91f452553298770f |
+|  alias | Псевдоним. См. [Требования к псевдониму](https://docs.waves.tech/ru/blockchain/account/alias#%D1%82%D1%80%D0%B5%D0%B1%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D0%BA-%D0%BF%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BD%D0%B8%D0%BC%D1%83) | 91f452553298770f |
 
 
+<!-- Ethereum transaction = Транзакция в формате Ethereum -->
 #### `Ethereum transaction` ####
 Пользователь MetaMask может подписать и отправить на блокчейн Waves транзакцию в формате Ethereum, которая выполняет вызов dApp-скрипта или перевод токена.<br>
 Подробнее о [поддержке MetaMask](https://docs.waves.tech/ru/keep-in-touch/metamask).<br>
@@ -1242,6 +1243,7 @@ EthRpcResponse rs = node.broadcastEthTransaction(ethInvokeTx);
 node.waitForTransaction(ethInvokeTx.id());
 
 EthereumTransactionInfo ethInvokeTxInfo = node.getTransactionInfo(ethInvokeTx.id(), EthereumTransactionInfo.class);
+EthereumTransaction.Invocation invocation = (EthereumTransaction.Invocation) ethInvokeTxInfo.tx().payload();
 
 System.out.println("isInvocation:" + ethInvokeTxInfo.isInvokeTransaction());
 System.out.println("type:" + ethInvokeTxInfo.tx().type());
@@ -1313,7 +1315,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| amount <span style="color:red">(required)</span> | Количество WAVELET, передаваемое в лизинг (то есть количество WAVES, умноженное на 10<sup>8</sup>). | 1000 |
+| amount | Количество WAVELET, передаваемое в лизинг (то есть количество WAVES, умноженное на 10<sup>8</sup>). | 1000 |
 | recipient | Адрес получателя в кодировке base58 или псевдоним адреса. | 3P2HNUd5VUPLMQkJmctTPEeeHumiPN2GkTb | 
 | status | Статус лизинга:<br>- active — лизинг действует.<br>- canceled — лизинг отменен,<br>см. [Транзакция отмены лизинга](https://docs.waves.tech/ru/blockchain/transaction-type/lease-cancel-transaction).| active | 
 
@@ -1385,7 +1387,7 @@ System.out.println("lease cancelTransactionId:" + txInfo.leaseInfo().cancelTrans
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-| leaseId <span style="color:red">(required)</span> | Идентификатор транзакции лизинга, который нужно отменить. | BhHPPHBZpfp8FBy8DE7heTpWGJySYg2uU2r4YM6qaisw |
+| leaseId | Идентификатор транзакции лизинга, который нужно отменить. | BhHPPHBZpfp8FBy8DE7heTpWGJySYg2uU2r4YM6qaisw |
 | lease | Параметры отмененного лизинга. | [Пример](https://docs.waves.tech/ru/blockchain/transaction-type/lease-cancel-transaction#json-%D0%BF%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5:~:text=%22lease%22%3A,%22canceled%22%0A%20%20%7D)|
 
 <br>
@@ -1446,7 +1448,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 **Описание аргументов**
 | Наименование поля | Описание | Пример |
 | ----------- | ----------- | ----------- |
-|  minSponsoredAssetFee <span style="color:red">(required)</span> | Количество спонсорского ассета, эквивалентное 0,001 WAVES (100 000 WAVELET).<br>Целое число, выраженное в минимальных единицах («копейках») ассета.<br>null — отмена спонсирования.| 1000 |
+|  minSponsoredAssetFee | Количество спонсорского ассета, эквивалентное 0,001 WAVES (100 000 WAVELET).<br>Целое число, выраженное в минимальных единицах («копейках») ассета.<br>null — отмена спонсирования.| 1000 |
 | assetId | ID ассета в кодировке base58. | p1vuxnGyfH9VFiuyKmsh25rn6MedjGbQu7d6Zt1sY4U |
 
 <br>
