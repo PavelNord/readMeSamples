@@ -52,12 +52,12 @@ Maven:
 
 Gradle:
 ```
-compile group: 'com.wavesplatform', name: 'wavesj', version: '1.4.1'
+compile group: 'com.wavesplatform', name: 'wavesj', version: '1.4.2'
 ```
 
 SBT:
 ```
-libraryDependencies += "com.wavesplatform" % "wavesj" % "1.4.1"
+libraryDependencies += "com.wavesplatform" % "wavesj" % "1.4.2"
 ```
 ## Использование ##
 ### Работа с аккаунтом ###
@@ -896,7 +896,7 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 Подробнее о [транзакции массового перевода](https://docs.waves.tech/ru/blockchain/transaction-type/mass-transfer-transaction).<br>
 
 
-Создаем транзакцию массового перевода двум адресатам: bob и julia.
+Создаем транзакцию массового перевода двум адресатам: bob и julia.<br>
 Подписываем транзакцию приватным ключем отправителя alice.
 
 
@@ -980,7 +980,6 @@ import java.util.Collections;
 DataTransaction tx = DataTransaction.builder(
         StringEntry.as("str", alice.address().toString()))
         .getSignedWith(alice);
-// DataTransaction tx = DataTransaction.builder(StringEntry.as("key1", "value1"), StringEntry.as("key2", "value2"))
 
 // Реализация через сonstructor
 DataTransaction tx = new DataTransaction(
@@ -1078,12 +1077,197 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 |  alias <span style="color:red">(required)</span> | Псевдоним. См. [Требования к псевдониму](https://docs.waves.tech/ru/blockchain/account/alias#%D1%82%D1%80%D0%B5%D0%B1%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F-%D0%BA-%D0%BF%D1%81%D0%B5%D0%B2%D0%B4%D0%BE%D0%BD%D0%B8%D0%BC%D1%83) | 91f452553298770f |
 
 
+#### `Ethereum transaction` ####
+Пользователь MetaMask может подписать и отправить на блокчейн Waves транзакцию в формате Ethereum, которая выполняет вызов dApp-скрипта или перевод токена.<br>
+Подробнее о [поддержке MetaMask](https://docs.waves.tech/ru/keep-in-touch/metamask).<br>
+Подробнее о [транзакции в формате Ethereum](https://docs.waves.tech/ru/blockchain/transaction-type/ethereum-transaction#%D0%BA%D0%BE%D0%BC%D0%B8%D1%81%D1%81%D0%B8%D1%8F-%D0%B7%D0%B0-%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D1%8E).
+
+Возможны два вида транзакций в формате Ethereum:
+- [Транзакиця перевода (Ethereum)](#транзакиця-перевода-ethereum)
+- [Транзакция вызова скрипта (Ethereum)](#транзакция-вызова-скрипта-ethereum)
+
+##### `Транзакиця перевода (Ethereum)` #####
+Создаем адрес charlie в формате Ethereum.<br>
+Конвертируем адрес charlie в формат Waves.<br>
+Отправляем деньги на адрес charlie от адреса alice.<br>
+Создаем и проводим трансфер-транзакцию от имени charlie.<br>
+<br>
+
+```Java
+// Необходимые импортирования
+import static com.wavesplatform.transactions.EthereumTransaction.DEFAULT_GAS_PRICE;
+import com.wavesplatform.transactions.EthereumTransaction;
+import com.wavesplatform.transactions.MetamaskHelper;
+import com.wavesplatform.transactions.TransferTransaction;
+import com.wavesplatform.transactions.WavesConfig;
+import com.wavesplatform.transactions.common.Amount;
+import com.wavesplatform.transactions.common.AssetId;
+import com.wavesplatform.wavesj.info.EthereumTransactionInfo;
+import com.wavesplatform.wavesj.util.WavesEthConverter;
+import org.web3j.crypto.Credentials;
+import java.time.Instant;
+
+
+Credentials charlie = MetamaskHelper.generateCredentials("some mnemonic");
+String charlieAddress = WavesEthConverter.ethToWavesAddress(charlie.getAddress(), ChainId.TESTNET);
+
+TransferTransaction tx = TransferTransaction.builder(new Address(charlieAddress), Amount.of(1_00_000_000)).getSignedWith(alice);
+node.waitForTransaction(node.broadcast(tx).id());
+
+EthereumTransaction transferTx = EthereumTransaction.createAndSign(
+        new EthereumTransaction.Transfer(
+                new Address(alice.address().encoded()),
+                new Amount(1000, AssetId.WAVES)
+        ),
+        DEFAULT_GAS_PRICE,
+        WavesConfig.chainId(),
+        100000L,
+        Instant.now().toEpochMilli(),
+        charlie.getEcKeyPair()
+);
+
+// Отправка транзакции на ноду и вывод на экране информации о ней 
+EthRpcResponse rs = node.broadcastEthTransaction(transferTx);
+node.waitForTransaction(transferTx.id());
+EthereumTransactionInfo ethTxInfo = node.getTransactionInfo(transferTx.id(), EthereumTransactionInfo.class);
+
+EthereumTransaction.Transfer payload = (EthereumTransaction.Transfer) ethTxInfo.tx().payload();
+
+System.out.println("isTransfer transaction:" + ethTxInfo.isTransferTransaction());
+System.out.println("type:" + ethTxInfo.tx().type());
+System.out.println("id:" + ethTxInfo.tx().id());
+System.out.println("fee:" + ethTxInfo.tx().fee().value());
+System.out.println("feeAssetId:" + ethTxInfo.tx().fee().assetId().encoded());
+System.out.println("timestamp:" + ethTxInfo.tx().timestamp());
+System.out.println("version:" + ethTxInfo.tx().version());
+System.out.println("chainId:" + ethTxInfo.tx().chainId());
+System.out.println("sender:" + ethTxInfo.tx().sender().address().encoded());
+System.out.println("senderPublicKey:" + ethTxInfo.tx().sender().encoded());
+System.out.println("proofs:" + ethTxInfo.tx().proofs());
+System.out.println("payload recipient:" + payload.recipient().encoded());
+System.out.println("payload asset:" + payload.amount().assetId().encoded());
+System.out.println("payload amount:" + payload.amount().value());
+System.out.println("asset:" + payload.amount().assetId().encoded());
+System.out.println("height:" + ethTxInfo.height());
+System.out.println("applicationStatus:" + ethTxInfo.applicationStatus());
+```
+
+##### `Транзакция вызова скрипта (Ethereum)` ####
+Создаем адрес charlie в формате Ethereum.<br>
+Конвертируем адрес charlie в представление Waves.<br>
+Отправляем деньги на адрес charlie от адреса alice.<br>
+Трансформируем написанный скрипт в кодировку base64.<br>
+Устанавливаем данный скрипт на аккаунт bob.<br>
+Создаем и проводим транзакцию вызова скрипта от имени alice.<br>
+Вызываем скрипт от имени charlie.<br>
+<br>
+
+```Java
+// Необходимые импортирования
+import static com.wavesplatform.transactions.EthereumTransaction.DEFAULT_GAS_PRICE;
+import com.wavesplatform.transactions.*;
+import com.wavesplatform.transactions.common.Amount;
+import com.wavesplatform.transactions.common.AssetId;
+import com.wavesplatform.transactions.common.Base64String;
+import com.wavesplatform.transactions.invocation.*;
+import com.wavesplatform.wavesj.info.EthereumTransactionInfo;
+import com.wavesplatform.wavesj.util.WavesEthConverter;
+import org.web3j.crypto.Credentials;
+import java.time.Instant;
+import java.util.ArrayList;
+
+Credentials charlie = MetamaskHelper.generateCredentials("some mnemonic");
+String charlieAddress = WavesEthConverter.ethToWavesAddress(charlie.getAddress(), ChainId.TESTNET);
+        
+TransferTransaction tx = TransferTransaction.builder(
+        new Address(charlieAddress), Amount.of(1_00_000_000)).getSignedWith(alice);
+node.waitForTransaction(node.broadcast(tx).id());
+
+Base64String script = node.compileScript(
+        "{-# STDLIB_VERSION 5 #-}\n" +
+        "{-# CONTENT_TYPE DAPP #-}\n" +
+        "{-# SCRIPT_TYPE ACCOUNT #-}\n" +
+        "@Callable(inv)\n" +
+        "func call(bv: ByteVector, b: Boolean, int: Int, str: String, list: List[Int]) = {\n" +
+        "  let asset = Issue(\"Asset\", \"\", 1, 0, true)\n" +
+        "  let assetId = asset.calculateAssetId()\n" +
+        "  let lease = Lease(inv.caller, 7)\n" +
+        "  let leaseId = lease.calculateLeaseId()\n" +
+        "  [\n" +
+        "    BinaryEntry(\"bin\", assetId),\n" +
+        "    BooleanEntry(\"bool\", true),\n" +
+        "    IntegerEntry(\"int\", 100500),\n" +
+        "    StringEntry(\"assetId\", assetId.toBase58String()),\n" +
+        "    StringEntry(\"leaseId\", leaseId.toBase58String()),\n" +
+        "    StringEntry(\"del\", \"\"),\n" +
+        "    DeleteEntry(\"del\"),\n" +
+        "    asset,\n" +
+        "    SponsorFee(assetId, 1),\n" +
+        "    Reissue(assetId, 4, false),\n" +
+        "    Burn(assetId, 3),\n" +
+        "    ScriptTransfer(inv.caller, 2, assetId),\n" +
+        "    lease,\n" +
+        "    LeaseCancel(lease.calculateLeaseId())\n" +
+        "  ]\n" +
+        "}").script();
+
+node.waitForTransaction(node.broadcast(SetScriptTransaction.builder(script).fee(3400000).getSignedWith(alice)).id());
+
+ArrayList<Amount> payments = new ArrayList<>();
+payments.add(Amount.of(1, AssetId.WAVES));
+payments.add(Amount.of(2, AssetId.WAVES));
+payments.add(Amount.of(3, AssetId.WAVES));
+
+EthereumTransaction ethInvokeTx = EthereumTransaction.createAndSign(
+        new EthereumTransaction.Invocation(
+                alice.address(),
+                Function.as("call",
+                            BinaryArg.as(new Address(charlieAddress).bytes()),
+                            BooleanArg.as(true),
+                            IntegerArg.as(100500),
+                            StringArg.as(alice.address().toString()),
+                            ListArg.as(IntegerArg.as(100500))
+                ),
+                        payments
+                ),
+        DEFAULT_GAS_PRICE,
+        WavesConfig.chainId(),
+        100500000L,
+        Instant.now().toEpochMilli(),
+        charlie.getEcKeyPair()
+);
+
+// Отправка транзакции на ноду и вывод на экране информации о ней
+EthRpcResponse rs = node.broadcastEthTransaction(ethInvokeTx);
+node.waitForTransaction(ethInvokeTx.id());
+
+EthereumTransactionInfo ethInvokeTxInfo = node.getTransactionInfo(ethInvokeTx.id(), EthereumTransactionInfo.class);
+
+System.out.println("isInvocation:" + ethInvokeTxInfo.isInvokeTransaction());
+System.out.println("type:" + ethInvokeTxInfo.tx().type());
+System.out.println("id:" + ethInvokeTxInfo.tx().id());
+System.out.println("fee:" + ethInvokeTxInfo.tx().fee().value());
+System.out.println("feeAssetId:" + ethInvokeTxInfo.tx().fee().assetId().encoded());
+System.out.println("timestamp:" + ethInvokeTxInfo.tx().timestamp());
+System.out.println("version:" + ethInvokeTxInfo.tx().version());
+System.out.println("chainId:" + ethInvokeTxInfo.tx().chainId());
+System.out.println("sender:" + ethInvokeTxInfo.tx().sender().address().encoded());
+System.out.println("senderPublicKey:" + ethInvokeTxInfo.tx().sender().encoded());
+System.out.println("proofs:" + ethInvokeTxInfo.tx().proofs());
+System.out.println("payload dApp:" + invocation.dApp().encoded());
+System.out.println("payload call function:" + invocation.function().name());
+System.out.println("payload call args:" + invocation.function().args());
+System.out.println("payment:" + invocation.payments());
+System.out.println("stateChanges:" + ethInvokeTxInfo.getStateChanges());
+System.out.println("height:" + ethInvokeTxInfo.height());
+System.out.println("applicationStatus:" + ethInvokeTxInfo.applicationStatus());
+```
+
 <br>
 
 ---
 
 **Сеть** <br>
-
 <!-- Lease transaction = Транзакция лизинга -->
 #### `Lease transaction` ####
 Транзакция лизинга передает WAVES в лизинг другому аккаунту.<br>
@@ -1155,7 +1339,6 @@ import com.wavesplatform.transactions.LeaseTransaction;
 long amount = 1000;
 LeaseTransaction leaseTx = LeaseTransaction.builder(bob.address(), amount)
         .getSignedWith(alice);
-int leaseHeight = node.waitForTransaction(node.broadcast(leaseTx).id()).height();
 LeaseCancelTransaction tx = LeaseCancelTransaction.builder(leaseTx.id())
         .getSignedWith(alice);
 
@@ -1163,7 +1346,6 @@ LeaseCancelTransaction tx = LeaseCancelTransaction.builder(leaseTx.id())
 long amount = 1000;
 LeaseTransaction leaseTx = new LeaseTransaction(alice.publicKey(), bob.address(), amount)
         .addProof(alice);
-int leaseHeight = node.waitForTransaction(node.broadcast(leaseTx).id()).height();
 LeaseCancelTransaction tx = new LeaseCancelTransaction(alice.publicKey(), leaseTx.id())
         .addProof(alice);
 
@@ -1269,5 +1451,6 @@ System.out.println("applicationStatus:" + txInfo.applicationStatus());
 
 <br>
 
+---
 
 ### Работа с нодой ###
